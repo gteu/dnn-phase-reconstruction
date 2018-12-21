@@ -8,58 +8,59 @@ from keras.layers import Dense
 from keras.layers import Dropout
 from keras.optimizers import SGD, Adam, Adagrad
 
-def read_data_from_list(inp_file_list, out_file_list, inp_dim, out_dim):
-    temp_x = np.empty((FRAME_BUFFER_SIZE, inp_dim))
-    temp_y = np.empty((FRAME_BUFFER_SIZE, out_dim))
-
-    current_index = 0
-
-    assert len(inp_file_list) == len(out_file_list)
-    num_of_sounds = len(inp_file_list)
-
-    for i in range(num_of_sounds):
-        file_x = np.fromfile(inp_file_list[i], dtype=np.float32)
-        file_x = np.reshape(file_x, (inp_dim, -1))
-        file_x = file_x.T
-
-        file_y = np.fromfile(out_file_list[i], dtype=np.float32)
-        file_y = np.reshape(file_y, (out_dim, -1))
-        file_y = file_y.T
-
-        assert file_x.shape[0] == file_y.shape[0]
-        frame_number = file_x.shape[0]
-
-        temp_x[current_index:current_index+frame_number] = file_x[0:frame_number]
-        temp_y[current_index:current_index+frame_number] = file_y[0:frame_number]
-
-        current_index += frame_number
-
-    temp_x = temp_x[0:current_index]
-    temp_y = temp_y[0:current_index]
-
-    return temp_x, temp_y
-
-def prepare_file_path_list(file_id_list, file_dir, file_extension):
-    file_path_list = []
-    for file_id in file_id_list:
-        file_path = file_dir + "/" + file_id + file_extension
-        file_path_list.append(file_path)
-
-    return file_path_list
+from src import utils
 
 def phase_loss(y_true, y_pred):
     return
 
-FRAME_BUFFER_SIZE = 3000000
+# train_file_number = 6000
+# valid_file_number = 700
+# test_file_number = 49
 
-train_file_number = 6000
-valid_file_number = 700
-test_file_number = 49
+train_file_number = 1850
+valid_file_number = 100
+test_file_number = 50
 
-inp_dim = 513
-out_dim = 513
+inp_dim = 1285
+out_dim = 257
 
-inp_feat_dir = "data/abs"
+# DNN configuration
+hidden_layer_type = ['relu', 'relu', 'relu']
+hidden_layer_size = [1024, 1024, 1024]
+
+output_type = 'linear'
+dropout = 0.0
+loss_function = phase_loss
+optimizer = Adam()
+shuffle_data = True
+
+num_of_epochs = 100
+
+model = Sequential()
+
+for i in range(len(hidden_layer_type)):
+    if i == 0:
+        input_size = inp_dim
+    else:
+        input_size = hidden_layer_size[i - 1]
+
+    model.add(Dense(
+            units=hidden_layer_size[i],
+            activation=hidden_layer_type[i],
+            kernel_initializer="normal",
+            input_dim=input_size))
+
+    model.add(Dropout(dropout_rate))
+
+final_layer = model.add(Dense(
+    units=out_dim,
+    activation=output_type.lower(),
+    kernel_initializer="normal",
+    input_dim=hidden_layer_size[-1]))
+
+model.compile(loss=loss_function, optimizer=optimizer)
+
+inp_feat_dir = "data/norm_abs"
 out_feat_dir = "data/phase"
 
 inp_file_ext = ".ab"
@@ -83,14 +84,14 @@ train_id_list = file_id_list[0: train_file_number]
 valid_id_list = file_id_list[train_file_number: train_file_number + valid_file_number]
 test_id_list  = file_id_list[train_file_number + valid_file_number: train_file_number + valid_file_number + test_file_number]
 
-inp_train_file_list = prepare_file_path_list(train_id_list, inp_feat_dir, inp_file_ext)
-out_train_file_list = prepare_file_path_list(train_id_list, out_feat_dir, out_file_ext)
+inp_train_file_list = utils.prepare_file_path_list(train_id_list, inp_feat_dir, inp_file_ext)
+out_train_file_list = utils.prepare_file_path_list(train_id_list, out_feat_dir, out_file_ext)
 
-inp_valid_file_list = prepare_file_path_list(valid_id_list, inp_feat_dir, inp_file_ext)
-out_valid_file_list = prepare_file_path_list(valid_id_list, out_feat_dir, out_file_ext)
+inp_valid_file_list = utils.prepare_file_path_list(valid_id_list, inp_feat_dir, inp_file_ext)
+out_valid_file_list = utils.prepare_file_path_list(valid_id_list, out_feat_dir, out_file_ext)
 
-inp_test_file_list = prepare_file_path_list(test_id_list, inp_feat_dir, inp_file_ext)
-out_test_file_list = prepare_file_path_list(test_id_list, out_feat_dir, out_file_ext)
+inp_test_file_list = utils.prepare_file_path_list(test_id_list, inp_feat_dir, inp_file_ext)
+out_test_file_list = utils.prepare_file_path_list(test_id_list, out_feat_dir, out_file_ext)
 
-train_x, train_y = read_data_from_list(inp_train_file_list, out_train_file_list, inp_dim, out_dim)
-valid_x, valid_y = read_data_from_list(inp_valid_file_list, out_valid_file_list, inp_dim, out_dim)
+train_x, train_y = utils.read_data_from_list(inp_train_file_list, out_train_file_list, inp_dim, out_dim)
+valid_x, valid_y = utils.read_data_from_list(inp_valid_file_list, out_valid_file_list, inp_dim, out_dim)
