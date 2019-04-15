@@ -177,12 +177,10 @@ if TESTMODEL:
         temp_test_x = np.reshape(temp_test_x, (inp_dim, -1))
         temp_test_x = temp_test_x.T
         num_of_rows        = temp_test_x.shape[0]
-        print(temp_test_x.shape)
 
         predictions = model.predict(temp_test_x)
         predictions = np.array(predictions, 'float32')
-#        predictions = predictions.T
-        print(predictions.shape)
+        predictions = predictions.T
 
         fid = open(gen_test_file_name, 'wb')
         predictions.tofile(fid)
