@@ -1,6 +1,5 @@
 import librosa
 import numpy as np
-import matplotlib.pyplot as plt
 import librosa.display
 import cmath
 import glob
@@ -10,7 +9,7 @@ np.set_printoptions(threshold=np.inf)
 
 from src import utils
 
-prepare_feats = False
+prepare_feats = True
 norm_feats = True
 
 data_shuffle = True
@@ -30,8 +29,7 @@ if prepare_feats:
     # create file_id_list.scp
     fid = open("file_id_list.scp", mode="w")
 
-    # for i in range(num_of_wavs):
-    for i in range(2000):
+    for i in range(num_of_wavs):
         # wav_name = os.path.splitext(os.path.basename(wavs[i]))[0]
         # fid.write(wav_name)
         fid.write(str(i))
@@ -41,8 +39,7 @@ if prepare_feats:
     fid.close()
 
     # create .ab and .ph
-    # for i in range(num_of_wavs):
-    for i in range(2000):
+    for i in range(num_of_wavs):
         wav = wavs[i]
         # wav_name = os.path.splitext(os.path.basename(wavs[i]))[0]
         print(i, wav)
@@ -52,27 +49,25 @@ if prepare_feats:
         ph = np.angle(D)
 
         joint_ab = np.empty((ab.shape[0] * 5, ab.shape[1]), dtype=np.float32)
-        joint_ph = np.empty((ph.shape[0] * 5, ph.shape[1]), dtype=np.float32)
 
         for j in range(ab.shape[1]):
             temp_ab = np.zeros((ab.shape[0], 5), dtype=np.float32)
-            temp_ph = np.zeros((ph.shape[0], 5), dtype=np.float32)
             for k in range(-2, 3):
-                if j + k < 0 or j + k > ab.shape[1] - 1:
-                    pass
+                if j + k < 0:
+                    temp_ab[:,2+k] = ab[:,0]
+                elif j + k > ab.shape[1] - 1:
+                    temp_ab[:,2+k] = ab[:,ab.shape[1] - 1]
                 else:
-                    temp_ab[:,k+2] = ab[:,j+k]
-                    temp_ph[:,k+2] = ph[:,j+k]
+                    temp_ab[:,2+k] = ab[:,j+k]
 
             joint_ab[:,j] = np.concatenate([temp_ab[:,0],temp_ab[:,1],temp_ab[:,2],temp_ab[:,3],temp_ab[:,4]], axis=0)
-            joint_ph[:,j] = np.concatenate([temp_ph[:,0],temp_ph[:,1],temp_ph[:,2],temp_ph[:,3],temp_ph[:,4]], axis=0)
 
         # ab_path = os.path.join("data/abs", wav_name + ".ab")
         # ph_path = os.path.join("data/phase", wav_name + ".ph")
         ab_path = os.path.join("data/abs", str(i) + ".ab")
         ph_path = os.path.join("data/phase", str(i) + ".ph")
         joint_ab.tofile(ab_path)
-        joint_ph.tofile(ph_path)
+        ph.tofile(ph_path)
 
 
 # normalize input data(.ab) to have zero-mean unit-variance
