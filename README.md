@@ -4,4 +4,5 @@ This is an implementation of DNN-Phase-Reconstruction based on https://arxiv.org
 
 The repository is now under construction, and will be updated soon.
 * switch Keras to Pytorch
-* modify phase initialization (Random init to Griffin Lim init)
+* modify phase initialization
+(The initial value for the Griffin-Lim algorithm needs to be the output of this model.)
