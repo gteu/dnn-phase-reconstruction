@@ -1,4 +1,4 @@
-# DNN-Phase-Reconstruction
+# DNNPhaseReconstruction
 
 This is an implementation of DNN-Phase-Reconstruction based on https://arxiv.org/abs/1807.03474.
 
